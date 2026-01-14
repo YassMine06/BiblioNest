@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db, Admin, Book, Reader, Loan, Setting, Author, Category, Reservation, Penalty, PenaltyType
 from werkzeug.security import check_password_hash
 import os
-from datetime import date
+from datetime import date, datetime, timedelta
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
@@ -55,6 +55,21 @@ def check_login():
     if 'user_id' not in session and request.endpoint not in public_routes:
         return redirect(url_for('login'))
 
+def to_date(d):
+    """Helper to convert date, datetime, or ISO string to date object."""
+    if d is None:
+        return None
+    if isinstance(d, date):
+        if isinstance(d, datetime):
+            return d.date()
+        return d
+    if isinstance(d, str):
+        try:
+            return datetime.strptime(d[:10], '%Y-%m-%d').date()
+        except:
+            return None
+    return None
+
 @app.route('/')
 def index():
     return redirect(url_for('dashboard'))
@@ -88,7 +103,6 @@ def logout():
 
 @app.route('/dashboard')
 def dashboard():
-    from datetime import date
     total_books = Book.query.count()
     total_readers = Reader.query.count()
     total_overdue = Loan.query.filter(Loan.returned_at == None, Loan.due_date < date.today()).count()
@@ -121,7 +135,6 @@ def dashboard():
     available_stock = db.session.query(db.func.sum(Book.available_copies)).scalar() or 0
 
     # 3. New Graph: Loans Over Time (Last 7 Days)
-    from datetime import timedelta
     from sqlalchemy import func
     
     dates_labels = []
@@ -162,7 +175,7 @@ def list_books():
 def get_books():
     action = request.args.get('action', 'fetch')
     if action == 'fetch':
-        books = Book.query.all()
+        books = Book.query.order_by(Book.id.desc()).all()
         result = []
         for book in books:
             result.append({
@@ -327,7 +340,7 @@ def get_readers():
     try:
         action = request.args.get('action', 'fetch')
         if action == 'fetch':
-            readers = Reader.query.all()
+            readers = Reader.query.order_by(Reader.id.desc()).all()
             result = []
             for reader in readers:
                 try:
@@ -422,7 +435,7 @@ def get_loans():
                 'reader_name': f"{loan.reader.first_name} {loan.reader.last_name}" if loan.reader else 'N/A',
                 'loan_date': loan.loan_date.strftime('%Y-%m-%d'),
                 'due_date': loan.due_date.strftime('%Y-%m-%d'),
-                'returned_at': loan.returned_at.strftime('%Y-%m-%d') if loan.returned_at else None,
+                'returned_at': to_date(loan.returned_at).strftime('%Y-%m-%d') if loan.returned_at else None,
                 'status': loan.status
             })
         return jsonify(result)
@@ -442,7 +455,6 @@ def get_loans():
 def add_loan():
     data = request.get_json()
     try:
-        from datetime import datetime
         book = Book.query.get(data.get('book_id'))
         if not book or book.available_copies <= 0:
             return jsonify({'success': False, 'error': 'Livre non disponible'})
@@ -452,7 +464,6 @@ def add_loan():
         
         # Fallback due date if not provided
         if not due_date:
-            from datetime import timedelta
             due_date = loan_date + timedelta(days=15)
 
         new_loan = Loan(
@@ -481,7 +492,6 @@ def edit_loan():
         loan.book_id = data.get('book_id')
         loan.reader_id = data.get('reader_id')
         
-        from datetime import datetime
         if data.get('loan_date'):
             loan.loan_date = datetime.strptime(data.get('loan_date'), '%Y-%m-%d').date()
         if data.get('due_date'):
@@ -502,15 +512,14 @@ def return_loan():
              return jsonify({'success': False, 'error': 'Déjà retourné'})
              
         try:
-            from datetime import date
-            return_date = date.today()
+            return_date = datetime.utcnow()
             loan.status = 'Terminé'
             loan.returned_at = return_date
             loan.book.available_copies += 1
             
             # Check if loan is overdue and create penalty
-            if return_date > loan.due_date:
-                days_overdue = (return_date - loan.due_date).days
+            if return_date.date() > loan.due_date:
+                days_overdue = (return_date.date() - loan.due_date).days
                 
                 # Use settings for daily rate
                 settings = Setting.query.get(1)
@@ -524,7 +533,7 @@ def return_loan():
                     penalty_type_id=1,  # Assuming 1 is "Retard"
                     reason=f"Retour en retard de {days_overdue} jour(s)",
                     amount=penalty_amount,
-                    penalty_date=return_date,
+                    penalty_date=return_date.date(),
                     status='Impayé'
                 )
                 db.session.add(penalty)
@@ -575,12 +584,13 @@ def get_returns():
         returns = Loan.query.filter_by(status='Terminé').order_by(Loan.returned_at.desc()).all()
         result = []
         for r in returns:
-            days_late = (r.returned_at - r.due_date).days if r.returned_at and r.due_date else 0
+            ret_date = to_date(r.returned_at)
+            days_late = (ret_date - r.due_date).days if ret_date and r.due_date else 0
             result.append({
                 'id': r.id,
                 'book_title': r.book.title if r.book else 'N/A',
                 'reader_name': f"{r.reader.first_name} {r.reader.last_name}" if r.reader else 'N/A',
-                'returned_at': r.returned_at.strftime('%Y-%m-%d') if r.returned_at else 'N/A',
+                'returned_at': ret_date.strftime('%Y-%m-%d') if ret_date else 'N/A',
                 'days_late': max(0, days_late),
                 'status': 'Rendu'
             })

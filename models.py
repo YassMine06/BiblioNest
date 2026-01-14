@@ -75,7 +75,7 @@ class Loan(db.Model):
     reader_id = db.Column(db.Integer, db.ForeignKey('Readers.id'), nullable=False)
     loan_date = db.Column(db.Date, nullable=False, default=date.today)
     due_date = db.Column(db.Date, nullable=False)
-    returned_at = db.Column(db.Date)
+    returned_at = db.Column(db.DateTime)
     status = db.Column(Enum('En cours', 'Retard', 'Terminé'), default='En cours')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # Relationship with cascade delete for penalties
