@@ -1,124 +1,125 @@
 /* Book Copies Info - Compact Display */
 .book-copies-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    margin: 10px 0;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  margin: 10px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 .copies-label {
-    font-size: 0.9em;
-    color: #666;
-    font-weight: 500;
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
 }
 
 .copies-value {
-    font-size: 0.9em;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 12px;
+  font-size: 0.9em;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
 .copies-value.available {
-    color: #2e7d32;
-    background-color: #e8f5e9;
+  color: #2e7d32;
+  background-color: #e8f5e9;
 }
 
 .copies-value.unavailable {
-    color: #c62828;
-    background-color: #ffebee;
+  color: #c62828;
+  background-color: #ffebee;
 }
 
 /* Info Icon in Top-Right Corner */
 .info-icon-wrapper {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 10;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
 }
 
 .info-icon-wrapper i {
-    font-size: 24px;
-    color: var(--color-brown);
-    cursor: pointer;
-    background: white;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
+  font-size: 24px;
+  color: var(--color-brown);
+  cursor: pointer;
+  background: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
 .info-icon-wrapper i:hover {
-    color: var(--color-brown-dark);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  color: var(--color-brown-dark);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 /* Tooltip - Hidden by Default */
 .info-tooltip {
-    position: absolute;
-    top: 40px;
-    right: 0;
-    background: white;
-    border: 2px solid var(--color-brown);
-    border-radius: 12px;
-    padding: 15px;
-    min-width: 250px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-    z-index: 100;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border: 2px solid var(--color-brown);
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 250px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 100;
 }
 
 /* Show Tooltip on Hover */
 .info-icon-wrapper:hover .info-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 /* Tooltip Arrow */
 .info-tooltip::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    right: 12px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--color-brown);
+  content: "";
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--color-brown);
 }
 
 /* Tooltip Items */
 .tooltip-item {
-    padding: 6px 0;
-    font-size: 0.9em;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
+  padding: 6px 0;
+  font-size: 0.9em;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .tooltip-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .tooltip-item strong {
-    color: var(--color-brown-dark);
-    margin-right: 8px;
-    display: inline-block;
-    min-width: 80px;
+  color: var(--color-brown-dark);
+  margin-right: 8px;
+  display: inline-block;
+  min-width: 80px;
 }
 
 /* Adjust card for relative positioning */
 .book-card {
-    position: relative;
+  position: relative;
 }

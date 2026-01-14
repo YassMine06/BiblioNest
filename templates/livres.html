@@ -73,14 +73,14 @@
     /* Container Settings */
     .books-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        /* 3 columns per row */
-        gap: 40px;
-        /* Increased gap for 3 columns */
+        grid-template-columns: repeat(4, 1fr);
+        /* 4 columns per row */
+        gap: 30px;
+        /* Balanced gap for 4 columns */
         padding: 27px;
         align-items: stretch;
-        max-width: 1100px;
-        /* Adjusted width for 3 columns */
+        max-width: 1400px;
+        /* Adjusted width for 4 columns */
         margin: 0 auto;
         /* Center the grid on the page */
     }
@@ -193,6 +193,7 @@
         /* Line clamp to prevent long titles breaking layout */
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         height: 2.4em;

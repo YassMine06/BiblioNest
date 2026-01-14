@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (result.success) {
                         fetchBooks(); // Reload
                     } else {
-                        alert("Erreur lors de la suppression.");
+                        alert("Erreur lors de la suppression : " + (result.error || "Une erreur inconnue est survenue."));
                     }
                 })
                 .catch(err => console.error(err));

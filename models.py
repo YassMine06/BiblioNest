@@ -42,6 +42,10 @@ class Book(db.Model):
     # status is a generated column in SQL, we can handle it as a property in Python
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Relationships with cascade delete
+    loans = db.relationship('Loan', backref='book', lazy=True, cascade="all, delete-orphan")
+    reservations = db.relationship('Reservation', backref='book', lazy=True, cascade="all, delete-orphan")
+    
     __table_args__ = (
         db.CheckConstraint('available_copies <= total_copies', name='check_available_not_exceed_total'),
         db.CheckConstraint('available_copies >= 0', name='check_available_positive'),
@@ -74,7 +78,8 @@ class Loan(db.Model):
     returned_at = db.Column(db.Date)
     status = db.Column(Enum('En cours', 'Retard', 'Terminé'), default='En cours')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    book = db.relationship('Book', backref='loans')
+    # Relationship with cascade delete for penalties
+    penalties = db.relationship('Penalty', backref='loan', lazy=True, cascade="all, delete-orphan")
 
 class Reservation(db.Model):
     __tablename__ = 'Reservations'
@@ -85,7 +90,6 @@ class Reservation(db.Model):
     expiry_date = db.Column(db.Date, nullable=False)
     status = db.Column(Enum('En attente', 'Terminée', 'Annulée', 'Active'), nullable=False, default='En attente')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    book = db.relationship('Book', backref='reservations')
 
 class PenaltyType(db.Model):
     __tablename__ = 'PenaltyTypes'

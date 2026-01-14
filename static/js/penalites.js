@@ -42,17 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>${item.reason}</p>
                 </div>
                 <div class="penalty-actions">
-                    ${!isPaid ? `
-                        <button class="action-btn pay" onclick="payPenalty(${item.id})" title="Marquer comme payé">
-                            <i class='bx bx-check-circle'></i>
+                    <div class="info-icon-wrapper">
+                        <i class='bx bx-info-circle'></i>
+                        <div class="info-tooltip">
+                            <div class="tooltip-item"><strong>Livre:</strong> ${item.book_title || 'N/A'}</div>
+                            ${item.days_late > 0 ? `<div class="tooltip-item"><strong>Retard:</strong> ${item.days_late} jours</div>` : ''}
+                            ${item.calculation_text ? `<div class="tooltip-item"><strong>Calcul:</strong> ${item.calculation_text}</div>` : ''}
+                            <div class="tooltip-item"><strong>Type:</strong> ${item.penalty_type}</div>
+                        </div>
+                    </div>
+                    <div class="actions-buttons">
+                        ${!isPaid ? `
+                            <button class="action-btn pay" onclick="payPenalty(${item.id})" title="Marquer comme payé">
+                                <i class='bx bx-check-circle'></i>
+                            </button>
+                        ` : ''}
+                        <button class="action-btn edit" onclick="editPenalty(${item.id})" title="Modifier">
+                            <i class='bx bx-edit'></i>
                         </button>
-                    ` : ''}
-                    <button class="action-btn edit" onclick="editPenalty(${item.id})" title="Modifier">
-                        <i class='bx bx-edit'></i>
-                    </button>
-                    <button class="action-btn delete" onclick="deletePenalty(${item.id})" title="Supprimer">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                        <button class="action-btn delete" onclick="deletePenalty(${item.id})" title="Supprimer">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </div>
                 </div>
             `;
             penaltiesGrid.appendChild(card);
@@ -66,10 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateSelects() {
         return Promise.all([
             fetch('/api/penalites?action=fetch_readers').then(res => res.json()),
-            fetch('/api/penalites?action=fetch_types').then(res => res.json())
-        ]).then(([readers, types]) => {
+            fetch('/api/penalites?action=fetch_types').then(res => res.json()),
+            fetch('/api/livres?action=fetch').then(res => res.json())
+        ]).then(([readers, types, books]) => {
             const readerSelect = document.getElementById('readerSelect');
             const typeSelect = document.getElementById('typeSelect');
+            const bookSelect = document.getElementById('bookSelect');
 
             readerSelect.innerHTML = '<option value="">Choisir un lecteur</option>';
             readers.forEach(r => {
@@ -85,28 +98,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 opt.value = t.id;
                 opt.textContent = t.label;
                 opt.dataset.amount = t.fixed_amount;
-                opt.dataset.rate = t.daily_rate; // Include rate
+                opt.dataset.rate = t.daily_rate;
+                opt.dataset.label = t.label; // Store label for logic
                 typeSelect.appendChild(opt);
             });
+
+            if(bookSelect) {
+                bookSelect.innerHTML = '<option value="">Aucun livre associé</option>';
+                books.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.title;
+                    opt.dataset.price = b.price;
+                    bookSelect.appendChild(opt);
+                });
+            }
         });
     }
 
     // Amount auto-fill logic
-    document.getElementById('typeSelect').addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        const fixedAmount = parseFloat(selectedOption.dataset.amount || 0);
-        const dailyRate = parseFloat(selectedOption.dataset.rate || 0);
+    // Amount auto-fill logic
+    function calculateAmount() {
+        const typeSelect = document.getElementById('typeSelect');
+        const bookSelect = document.getElementById('bookSelect');
+        const amountInput = document.getElementById('amount');
+        const reasonInput = document.getElementById('reason');
 
-        if (fixedAmount > 0) {
-            document.getElementById('amount').value = fixedAmount;
-        } else if (dailyRate > 0) {
-            document.getElementById('amount').value = dailyRate;
+        const selectedType = typeSelect.options[typeSelect.selectedIndex];
+        const selectedBook = bookSelect.options[bookSelect.selectedIndex];
+
+        if (!selectedType || !selectedType.value) return;
+
+        const fixedAmount = parseFloat(selectedType.dataset.amount || 0);
+        const dailyRate = parseFloat(selectedType.dataset.rate || 0);
+        const label = selectedType.dataset.label || '';
+        const bookPrice = selectedBook && selectedBook.value ? parseFloat(selectedBook.dataset.price || 0) : 0;
+
+        // Custom Logic: If "Perte", Amount = Book Price + Fixed Amount
+        if (label.toLowerCase().includes('perte')) {
+            amountInput.value = (fixedAmount + bookPrice).toFixed(2);
+        } else {
+            // Standard Logic
+            if (fixedAmount > 0) {
+                amountInput.value = fixedAmount;
+            } else if (dailyRate > 0) {
+                amountInput.value = dailyRate;
+            }
         }
 
-        if (selectedOption.value) {
-            document.getElementById('reason').value = selectedOption.text;
+        if (reasonInput.value === '' || reasonInput.value === selectedType.text) {
+             reasonInput.value = selectedType.text; // Default reason
         }
-    });
+    }
+
+    document.getElementById('typeSelect').addEventListener('change', calculateAmount);
+    document.getElementById('bookSelect').addEventListener('change', calculateAmount);
 
     // 4. Modal Logic
     const modal = document.getElementById('penModal');
@@ -155,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = {
                 id: currentId,
                 reader_id: document.getElementById('readerSelect').value,
+                book_id: document.getElementById('bookSelect').value, // NEW
                 penalty_type_id: document.getElementById('typeSelect').value,
                 reason: document.getElementById('reason').value,
                 amount: document.getElementById('amount').value,

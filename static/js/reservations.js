@@ -93,7 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ]).then(([books, readers]) => {
             bookSelect.innerHTML = '<option value="">Choisir un livre...</option>';
             books.forEach(book => {
-                bookSelect.innerHTML += `<option value="${book.id}">${book.title}</option>`;
+                if (book.available_copies === 0) {
+                    bookSelect.innerHTML += `<option value="${book.id}">${book.title}</option>`;
+                }
             });
 
             readerSelect.innerHTML = '<option value="">Choisir un lecteur...</option>';
@@ -198,7 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('/api/lecteurs?action=fetch').then(r => r.json())
         ]).then(([books, readers]) => {
             bookSelect.innerHTML = '<option value="">Choisir un livre...</option>';
-            books.forEach(b => bookSelect.innerHTML += `<option value="${b.id}">${b.title}</option>`);
+            books.forEach(b => {
+                if (b.available_copies === 0 || b.id === item.book_id) {
+                    bookSelect.innerHTML += `<option value="${b.id}">${b.title}</option>`;
+                }
+            });
 
             readerSelect.innerHTML = '<option value="">Choisir un lecteur...</option>';
             readers.forEach(r => readerSelect.innerHTML += `<option value="${r.id}">${r.first_name} ${r.last_name}</option>`);

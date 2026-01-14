@@ -511,14 +511,17 @@ def return_loan():
             # Check if loan is overdue and create penalty
             if return_date > loan.due_date:
                 days_overdue = (return_date - loan.due_date).days
-                # Calculate penalty: 5 DH per day overdue (you can adjust this)
-                penalty_amount = days_overdue * 5.0
+                
+                # Use settings for daily rate
+                settings = Setting.query.get(1)
+                daily_rate = float(settings.daily_penalty_amount) if settings else 1.0
+                penalty_amount = days_overdue * daily_rate
                 
                 # Create penalty record
                 penalty = Penalty(
                     reader_id=loan.reader_id,
                     loan_id=loan.id,
-                    penalty_type_id=1,  # Assuming 1 is "Retard de retour"
+                    penalty_type_id=1,  # Assuming 1 is "Retard"
                     reason=f"Retour en retard de {days_overdue} jour(s)",
                     amount=penalty_amount,
                     penalty_date=return_date,
@@ -662,7 +665,9 @@ def add_reservation():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/reservations/edit', methods=['POST'])
+
+
+@app.route('/api/penalites/edit', methods=['POST'])
 def edit_reservation():
     data = request.get_json()
     try:
@@ -759,13 +764,32 @@ def get_penalties():
         penalties = Penalty.query.order_by(Penalty.id.desc()).all()
         result = []
         for p in penalties:
+            # Data for tooltip
+            book_title = p.loan.book.title if p.loan and p.loan.book else "N/A"
+            days_late = 0
+            daily_rate = 0
+            calculation_text = ""
+            
+            if p.loan and p.penalty_date and p.loan.due_date:
+                 if p.penalty_date > p.loan.due_date:
+                     days_late = (p.penalty_date - p.loan.due_date).days
+                     daily_rate = float(p.penalty_type.daily_rate) if p.penalty_type and p.penalty_type.daily_rate else 0
+                     if daily_rate == 0:
+                         settings = Setting.query.get(1)
+                         daily_rate = float(settings.daily_penalty_amount) if settings else 1.0
+                     calculation_text = f"{days_late} jours × {daily_rate} DH/jour"
+
             result.append({
                 'id': p.id,
                 'reader_name': f"{p.reader.first_name} {p.reader.last_name}" if p.reader else 'N/A',
                 'reason': p.reason,
                 'amount': float(p.amount),
                 'status': p.status,
-                'penalty_type': p.penalty_type.label if p.penalty_type else 'N/A'
+                'penalty_type': p.penalty_type.label if p.penalty_type else 'N/A',
+                'book_title': book_title,
+                'days_late': days_late,
+                'daily_rate': daily_rate,
+                'calculation_text': calculation_text
             })
         return jsonify(result)
     elif action == 'fetch_types':
@@ -789,12 +813,34 @@ def get_penalties():
 def add_penalty():
     data = request.get_json()
     try:
+        from datetime import date
+        
+        # Logic to link book/loan
+        reader_id = data.get('reader_id')
+        book_id = data.get('book_id')
+        loan_id = None
+        reason = data.get('reason')
+        
+        if book_id and reader_id:
+            # Try to find recent loan for this book and reader
+            # We look for any loan (active or returned)
+            loan = Loan.query.filter_by(reader_id=reader_id, book_id=book_id).order_by(Loan.id.desc()).first()
+            if loan:
+                loan_id = loan.id
+            else:
+                # If no loan found, append book info to reason specifically if it's not already there
+                book = Book.query.get(book_id)
+                if book:
+                    reason += f" (Livre: {book.title})"
+
         new_penalty = Penalty(
-            reader_id=data.get('reader_id'),
+            reader_id=reader_id,
+            loan_id=loan_id,
             penalty_type_id=data.get('penalty_type_id'),
-            reason=data.get('reason'),
+            reason=reason,
             amount=data.get('amount'),
-            status='Impayé'
+            penalty_date=date.today(),
+            status=data.get('status', 'Impayé')
         )
         db.session.add(new_penalty)
         db.session.commit()

@@ -94,7 +94,13 @@
     padding-top: 15px;
     border-top: 1px solid #eee;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.actions-buttons {
+    display: flex;
     gap: 12px;
 }
 
@@ -130,4 +136,63 @@
     border-bottom: 1px dashed #ccc;
     padding-bottom: 5px;
     margin-bottom: 15px !important;
+}
+
+/* Tooltip for Penalty details */
+.info-icon-wrapper {
+    position: relative;
+    z-index: 10;
+}
+
+.info-icon-wrapper i {
+    font-size: 20px;
+    color: var(--color-brown);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.info-icon-wrapper i:hover {
+    color: var(--color-brown-dark);
+    transform: scale(1.1);
+}
+
+.info-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 10px;
+    background: white;
+    border: 2px solid var(--color-brown);
+    border-radius: 10px;
+    padding: 12px;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.info-icon-wrapper:hover .info-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tooltip-item {
+    padding: 5px 0;
+    font-size: 0.85em;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tooltip-item:last-child {
+    border-bottom: none;
+}
+
+.tooltip-item strong {
+    color: var(--color-brown-dark);
+    margin-right: 5px;
 }
