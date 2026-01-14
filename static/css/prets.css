@@ -1,0 +1,55 @@
+/* Prêts specific styles */
+/* Inherits most from dashboard.css and global styles */
+
+.loan-controls {
+    display: flex;
+    justify-content: flex-end;
+    /* Align button to right */
+    align-items: center;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+    margin-top: 1rem;
+    padding: 0 2rem;
+}
+
+table th:last-child,
+table td:last-child {
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Center the flex container inside the cell */
+table td:last-child .action-buttons {
+    justify-content: center;
+}
+
+/* Status specific colors for loans */
+.badge-retard {
+    background-color: #FFCDD2;
+    color: #C62828;
+}
+
+.action-btn.return {
+    color: var(--color-brown);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--color-brown);
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.action-btn.return:hover {
+    background-color: var(--color-brown);
+    color: white;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    /* Space between buttons */
+    align-items: center;
+}

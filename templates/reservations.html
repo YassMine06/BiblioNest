@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Réservations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Réservations</div>
+
+<div class="book-controls" style="justify-content: flex-end;">
+    <button class="add-btn" id="addResBtn"><i class='bx bx-plus'></i> Nouvelle Réservation</button>
+</div>
+
+<div class="recent-activities">
+    <table>
+        <thead>
+            <tr>
+                <th>Livre</th>
+                <th>Lecteur</th>
+                <th>Date Demande</th>
+                <th>Date Expiration</th>
+                <th>Statut</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="resTableBody">
+            <!-- Data populated by JS -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="resModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Nouvelle Réservation</h2>
+        <form id="addResForm">
+            <div class="form-group">
+                <label>Livre</label>
+                <select id="bookSelect" required></select>
+            </div>
+            <div class="form-group">
+                <label>Lecteur</label>
+                <select id="readerSelect" required></select>
+            </div>
+            <button type="submit" class="submit-btn" style="width: 100%;">Valider</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reservations.js') }}"></script>
+{% endblock %}

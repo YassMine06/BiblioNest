@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="dashboard-header"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="text">Tableau de bord</div>
+    <a href="{{ url_for('generate_report') }}" class="submit-btn"
+        style="width: auto; padding: 10px 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-right: 35px;">
+        <i class='bx bx-download'></i> Télécharger le rapport
+    </a>
+</div>
+
+<!-- Dashboard Widgets -->
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-icon brown">
+            <i class='bx bx-book'></i>
+        </div>
+        <div class="card-data">
+            <span class="number">{{ total_books }}</span>
+            <span class="label">Livres Total</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon beige">
+            <i class='bx bx-user-check'></i>
+        </div>
+        <div class="card-data">
+            <span class="number">{{ total_readers }}</span>
+            <span class="label">Lecteurs</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon warning">
+            <i class='bx bx-time-five'></i>
+        </div>
+        <div class="card-data">
+            <span class="number">{{ total_overdue }}</span>
+            <span class="label">Retours en retard</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon success">
+            <i class='bx bx-transfer'></i>
+        </div>
+        <div class="card-data">
+            <span class="number">{{ active_loans }}</span>
+            <span class="label">Prêts en cours</span>
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS SECTION -->
+<div class="charts-grid">
+    <!-- Chart 1: Categories -->
+    <div class="chart-container">
+        <h3>Répartition par Catégorie</h3>
+        <div class="chart-wrapper">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Stock Status -->
+    <div class="chart-container">
+        <h3>État du Stock (Copies)</h3>
+        <div class="chart-wrapper">
+            <canvas id="stockChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // --- 1. Category Chart (Doughnut) ---
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: {{ cat_names | tojson }},
+        datasets: [{
+            data: {{ cat_counts | tojson }},
+        backgroundColor: [
+            '#8D6E63', '#A1887F', '#BCAAA4', '#D7CCC8', '#EFEBE9',
+            '#795548', '#5D4037', '#4E342E', '#3E2723'
+        ],
+        borderWidth: 0
+                }]
+            },
+        options: {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'right' }
+        }
+    }
+        });
+
+    // --- 2. Stock Chart (Bar) ---
+    const ctxStock = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctxStock, {
+        type: 'bar',
+        data: {
+            labels: ['Disponibles', 'Empruntés (En cours)', 'En Retard'],
+            datasets: [{
+                label: 'Nombre de copies',
+                data: [{{ chart_available }}, {{ chart_borrowed }}, {{ chart_overdue }}],
+        backgroundColor: [
+        '#66BB6A', // Green for Available
+        '#42A5F5', // Blue for Borrowed
+        '#EF5350'  // Red for Overdue
+    ],
+        borderRadius: 5
+                }]
+            },
+        options: {
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+        });
+
+    // --- 3. New Loan Trend Chart (Line) ---
+    const ctxTrend = document.getElementById('loanTrendChart').getContext('2d');
+    window.trendChart = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: {{ dates_labels | tojson }},
+        datasets: [{
+            label: 'Nouveaux Emprunts',
+            data: {{ loans_data | tojson }},
+        borderColor: '#8D6E63',
+        backgroundColor: 'rgba(141, 110, 99, 0.1)',
+        borderWidth: 3,
+        tension: 0.4, // Smooth curves
+        fill: true,
+        pointBackgroundColor: '#5D4037',
+        pointRadius: 4
+                }]
+            },
+        options: {
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 } // Integer ticks for counts
+            }
+        },
+        plugins: {
+            legend: { display: true, position: 'top' }
+        }
+    }
+        });
+    });
+
+    // Update Chart Function (Global Scope)
+    function updateChart(period, btn) {
+        console.log("Requesting chart for period:", period);
+
+        // Update Buttons UI
+        if (btn) {
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        fetch(`/api/chart-data?period=${period}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Chart data received:", data);
+                if (window.trendChart) {
+                    window.trendChart.data.labels = data.labels;
+                    window.trendChart.data.datasets[0].data = data.data;
+                    window.trendChart.update();
+                } else {
+                    console.error("Chart instance 'window.trendChart' not found.");
+                }
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                alert("Erreur lors de la mise à jour du graphique. Vérifiez la connexion.");
+            });
+    }
+</script>
+
+<!-- New Graph Section (Full Width) -->
+<div class="chart-container" style="margin: 0 2rem 2rem 2rem; height: auto; min-height: 450px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Évolution des Emprunts</h3>
+        <div class="chart-controls">
+            <button class="btn-filter active" onclick="updateChart('week', this)">Semaine</button>
+            <button class="btn-filter" onclick="updateChart('month', this)">Mois</button>
+            <button class="btn-filter" onclick="updateChart('year', this)">Année</button>
+        </div>
+    </div>
+    <div class="chart-wrapper" style="height: 350px;">
+        <canvas id="loanTrendChart"></canvas>
+    </div>
+</div>
+
+<style>
+    .btn-filter {
+        background: white;
+        border: 1px solid #8D6E63;
+        color: #8D6E63;
+        padding: 5px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-left: 5px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        background: #f1f1f1;
+    }
+
+    .btn-filter.active {
+        background: #8D6E63;
+        color: white;
+    }
+</style>
+
+<!-- Recent Activities Table -->
+<div class="recent_activities_wrapper" style="margin: 0 2rem 2rem 2rem;">
+    <div class="recent-activities" style="margin: 0;">
+        <h2>Activités Récentes (5 derniers prêts)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lecteur</th>
+                    <th>Livre</th>
+                    <th>Date Prêt</th>
+                    <th>Échéance</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if not recent_activities %}
+                <tr>
+                    <td colspan="5" style="text-align:center;">Aucune activité récente.</td>
+                </tr>
+                {% else %}
+                {% for activity in recent_activities %}
+                {% if activity.returned_at %}
+                {% set status = 'Terminé' %}
+                {% set badge = 'badge-success' %}
+                {% elif activity.due_date < date.today() %} {% set status='Retard' %} {% set badge='badge-warning' %} {%
+                    else %} {% set status='En cours' %} {% set badge='badge-active' %} {% endif %} <tr>
+                    <td>{{ activity.reader.first_name }} {{ activity.reader.last_name }}</td>
+                    <td>{{ activity.book.title }}</td>
+                    <td>{{ activity.loan_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ activity.due_date.strftime('%d/%m/%Y') }}</td>
+                    <td><span class="status {{ badge }}">{{ status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

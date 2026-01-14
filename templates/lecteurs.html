@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Lecteurs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/lecteurs.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Lecteurs</div>
+
+<!-- Controls -->
+<div class="reader-controls">
+    <div class="search-box">
+        <i class='bx bx-search icon'></i>
+        <input type="text" id="searchInput" placeholder="Rechercher un lecteur...">
+    </div>
+    <button class="add-btn" id="addReaderBtn">
+        <i class='bx bx-plus'></i>
+        Nouveau Lecteur
+    </button>
+</div>
+
+<!-- Readers Table -->
+<div id="readersGrid" class="readers-grid">
+    <!-- Cards will be populated by JS -->
+</div>
+
+<!-- Add/Edit Reader Modal -->
+<div id="readerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modalTitle">Ajouter un Lecteur</h2>
+        <form id="addReaderForm">
+            <div class="form-group">
+                <label>Prénom</label>
+                <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="lastName" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <div class="form-group">
+                <label>Statut</label>
+                <select id="status">
+                    <option value="Actif">Actif</option>
+                    <option value="Suspendu">Suspendu</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-btn" style="width: 100%;">Enregistrer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/lecteurs.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Historique des Retours{% endblock %}
+
+{% block content %}
+<div class="text">Historique des Retours</div>
+
+<div class="recent-activities">
+    <table>
+        <thead>
+            <tr>
+                <th>Livre</th>
+                <th>Lecteur</th>
+                <th>Date de Retour</th>
+                <th>Retard (Jours)</th>
+                <th>État</th>
+            </tr>
+        </thead>
+        <tbody id="returnsTableBody">
+            <!-- Data populated by JS -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/retours.js') }}"></script>
+{% endblock %}

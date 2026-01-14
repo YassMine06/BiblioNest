@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioNest - Connexion</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .background-container {
+            background-image: url("{{ url_for('static', filename='images/background.png') }}");
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-container"></div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BiblioNest Logo" class="logo">
+            <h1>BiblioNest</h1>
+            <p>Bienvenue dans votre espace de gestion</p>
+        </div>
+
+        {% if error %}
+        <div style="color: #ff4d4d; text-align: center; margin-bottom: 15px; font-weight: 500;">{{ error }}</div>
+        {% endif %}
+
+        <form class="login-form" action="{{ url_for('login') }}" method="POST">
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" placeholder="Entrez votre nom d'utilisateur" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+            </div>
+
+            <div class="form-actions">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Se souvenir de moi</label>
+                </div>
+                <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+            </div>
+
+            <button type="submit" class="submit-btn">Se connecter</button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+
+</html>

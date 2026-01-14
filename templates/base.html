@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - {{ lib_name|default('BiblioNest') }}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    {% block extra_css %}{% endblock %}
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        if (localStorage.getItem('sidebarStatus') === 'open') {
+            document.documentElement.classList.add('sidebar-open');
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar close">
+        <header>
+            <div class="image-text">
+                <span class="image">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+                </span>
+                <div class="text logo-text">
+                    <span class="name">{{ lib_name|default('BiblioNest') }}</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="menu-bar">
+            <div class="menu">
+                <ul class="menu-links">
+                    <li class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('dashboard') }}">
+                            <i class='bx bx-grid-alt icon'></i>
+                            <span class="text nav-text">Tableau de bord</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_books' %}active{% endif %}">
+                        <a href="{{ url_for('list_books') }}">
+                            <i class='bx bx-library icon'></i>
+                            <span class="text nav-text">Livres</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_readers' %}active{% endif %}">
+                        <a href="{{ url_for('list_readers') }}">
+                            <i class='bx bx-user icon'></i>
+                            <span class="text nav-text">Lecteurs</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_loans' %}active{% endif %}">
+                        <a href="{{ url_for('list_loans') }}">
+                            <i class='bx bx-transfer-alt icon'></i>
+                            <span class="text nav-text">Prêts</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_returns' %}active{% endif %}">
+                        <a href="{{ url_for('list_returns') }}">
+                            <i class='bx bx-history icon'></i>
+                            <span class="text nav-text">Retours</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_reservations' %}active{% endif %}">
+                        <a href="{{ url_for('list_reservations') }}">
+                            <i class='bx bx-book-bookmark icon'></i>
+                            <span class="text nav-text">Réservations</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_penalties' %}active{% endif %}">
+                        <a href="{{ url_for('list_penalties') }}">
+                            <i class='bx bx-error-circle icon'></i>
+                            <span class="text nav-text">Pénalités</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_settings' %}active{% endif %}">
+                        <a href="{{ url_for('list_settings') }}">
+                            <i class='bx bx-cog icon'></i>
+                            <span class="text nav-text">Paramètres</span>
+                        </a>
+                    </li>
+                    <li class="nav-link {% if request.endpoint == 'list_admins' %}active{% endif %}">
+                        <a href="{{ url_for('list_admins') }}">
+                            <i class='bx bx-shield-quarter icon'></i>
+                            <span class="text nav-text">Gestion Admins</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="bottom-content">
+                <li class="footer-text text">
+                    <span>© 2025 BiblioNest</span>
+                </li>
+            </div>
+        </div>
+    </nav>
+
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <section class="home">
+        <!-- Top Nav Bar -->
+        <header class="top-nav">
+            <div class="nav-left"></div>
+            <div class="nav-right">
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="name">{{ session['user_name']|default('Admin') }}</span>
+                        <span class="role">{{ session['user_role']|default('Admin') }}</span>
+                    </div>
+                    <div class="user-avatar">
+                        <i class='bx bx-user'></i>
+                    </div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-link" style="text-decoration: none;">
+                    <i class='bx bx-log-out'></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content" style="padding: 20px;">
+            {% block content %}{% endblock %}
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Prêts{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/prets.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Prêts</div>
+
+<!-- Controls -->
+<div class="loan-controls">
+    <button class="add-btn" id="addLoanBtn">
+        <i class='bx bx-plus'></i>
+        Nouveau Prêt
+    </button>
+</div>
+
+<!-- Loans Table -->
+<div class="recent-activities">
+    <table>
+        <thead>
+            <tr>
+                <th>Livre</th>
+                <th>Lecteur</th>
+                <th>Date de Prêt</th>
+                <th>Retour Prévu</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="loansTableBody">
+            <!-- Data will be populated by JS -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Add/Edit Loan Modal -->
+<div id="loanModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modalTitle">Enregistrer un Prêt</h2>
+        <form id="addLoanForm">
+            <div class="form-group">
+                <label>Livre à emprunter</label>
+                <select id="bookSelect" required>
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Lecteur</label>
+                <select id="readerSelect" required>
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Date de Prêt</label>
+                <input type="date" id="loanDate" required>
+            </div>
+            <div class="form-group">
+                <label>Date de Retour Prévue</label>
+                <input type="date" id="returnDate" required>
+            </div>
+            <button type="submit" class="submit-btn" style="width: 100%;">Valider le Prêt</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/prets.js') }}"></script>
+{% endblock %}

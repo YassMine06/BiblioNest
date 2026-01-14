@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Pénalités{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/penalites.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Pénalités</div>
+
+<div class="book-controls" style="justify-content: flex-end; margin-bottom: 20px;">
+    <button class="add-btn" id="addPenBtn">
+        <i class='bx bx-plus'></i> Nouvelle Pénalité
+    </button>
+</div>
+
+<div id="penaltiesGrid" class="penalties-grid">
+    <!-- Cards will be populated by JS -->
+</div>
+
+<!-- Modal -->
+<div id="penModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Ajouter une Pénalité</h2>
+        <form id="addPenForm">
+            <div class="form-group">
+                <label>Lecteur</label>
+                <select id="readerSelect" required></select>
+            </div>
+            <div class="form-group">
+                <label>Type de pénalité</label>
+                <select id="typeSelect" required></select>
+            </div>
+            <div class="form-group">
+                <label>Motif (Détails)</label>
+                <textarea id="reason" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Montant (DH)</label>
+                <input type="number" id="amount" step="0.01" required>
+            </div>
+            <button type="submit" class="submit-btn"
+                style="width: 100%; background-color: #C62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Valider</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/penalites.js') }}"></script>
+{% endblock %}

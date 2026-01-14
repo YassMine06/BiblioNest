@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres Généraux{% endblock %}
+
+{% block content %}
+<div class="text" style="max-width: 1000px; margin: 0 auto 20px auto; padding-left: 20px;">Paramètres Généraux</div>
+
+<div class="recent-activities" style="max-width: 1000px; margin: 0 auto;">
+    <form id="settingsForm">
+        <div class="form-group">
+            <label>Nom de la Bibliothèque</label>
+            <input type="text" id="library_name" value="{{ setting.library_name if setting else 'BiblioNest' }}"
+                required>
+        </div>
+        <div class="form-group">
+            <label>Email de Contact</label>
+            <input type="email" id="contact_email" value="{{ setting.contact_email if setting else '' }}" required>
+        </div>
+        <div class="form-group">
+            <label>Durée de prêt par défaut (jours)</label>
+            <input type="number" id="default_loan_duration"
+                value="{{ setting.default_loan_duration if setting else 15 }}" required>
+        </div>
+        <div class="form-group">
+            <label>Montant pénalité retard (par jour - DH)</label>
+            <input type="number" step="0.01" id="daily_penalty_amount"
+                value="{{ setting.daily_penalty_amount if setting else 1.00 }}" required>
+        </div>
+        <div class="form-group">
+            <label>Pénalité Détérioration (Montant fixe - DH)</label>
+            <input type="number" step="0.01" id="deterioration_penalty_amount"
+                value="{{ setting.deterioration_penalty_amount if setting else 5.00 }}" required>
+        </div>
+        <div class="form-group">
+            <label>Pénalité Perte (Montant fixe - DH)</label>
+            <input type="number" step="0.01" id="lost_book_penalty_amount"
+                value="{{ setting.lost_book_penalty_amount if setting else 20.00 }}" required>
+        </div>
+
+        <button type="submit" class="submit-btn">Sauvegarder les modifications</button>
+    </form>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+    <h3>Maintenance du système</h3>
+    <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Si les nombres de copies (disponibles/totales)
+        semblent incorrects, utilisez ce bouton pour les synchroniser avec les prêts réels.</p>
+    <button id="resyncBtn" class="submit-btn"
+        style="background: var(--primary-color); width: auto; padding: 10px 20px; color: black;">
+        <i class='bx bx-sync'></i> Synchroniser les stocks
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('settingsForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const data = {
+            library_name: document.getElementById('library_name').value,
+            contact_email: document.getElementById('contact_email').value,
+            default_loan_duration: document.getElementById('default_loan_duration').value,
+            daily_penalty_amount: document.getElementById('daily_penalty_amount').value,
+            deterioration_penalty_amount: document.getElementById('deterioration_penalty_amount').value,
+            lost_book_penalty_amount: document.getElementById('lost_book_penalty_amount').value
+        };
+
+        fetch('/api/settings/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    alert("Paramètres sauvegardés avec succès !");
+                    location.reload();
+                } else {
+                    alert("Erreur: " + result.error);
+                }
+            })
+            .catch(err => console.error(err));
+    });
+
+    document.getElementById('resyncBtn').addEventListener('click', () => {
+        if (confirm("Voulez-vous synchroniser les stocks ? Cela recalculera les copies disponibles pour chaque livre.")) {
+            fetch('/api/settings/resync', { method: 'POST' })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        alert("Stocks synchronisés avec succès !");
+                        location.reload();
+                    } else {
+                        alert("Erreur: " + result.error);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+    });
+</script>
+{% endblock %}

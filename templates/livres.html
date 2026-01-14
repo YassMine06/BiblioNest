@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Livres{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/book-cards.css') }}">
+<style>
+    /* Modal Customization for Visibility */
+    .modal-content {
+        width: 780px !important;
+        max-width: 90vw;
+        min-height: 85vh;
+        /* Forced minimum height */
+        max-height: 95vh;
+        /* Cap it just in case */
+        overflow-y: auto;
+        /* Scroll if needed, though unlikely with compact form */
+        padding: 40px;
+        border-radius: 8px;
+    }
+
+    /* Title Centered */
+    #modalTitle {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #4E342E;
+        /* Dark brown */
+        font-size: 1.8em;
+    }
+
+    /* Form Grid Layout - COMPACT */
+    #addBookForm {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        /* 2 Columns */
+        gap: 15px;
+        /* Tighter gap */
+    }
+
+    /* Full width elements */
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Compact Form Fields */
+    .form-group {
+        margin-bottom: 5px !important;
+        /* Force tight spacing */
+    }
+
+    .form-group label {
+        margin-bottom: 3px;
+        font-size: 0.9em;
+        color: #6D4C41;
+    }
+
+    .form-group input {
+        padding: 8px;
+        /* Slightly smaller input padding */
+    }
+
+    /* Submit button full width */
+    #addBookForm button[type="submit"] {
+        grid-column: 1 / -1;
+        margin-top: 15px;
+        padding: 12px;
+        font-size: 1.1em;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Container Settings */
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columns per row */
+        gap: 40px;
+        /* Increased gap for 3 columns */
+        padding: 27px;
+        align-items: stretch;
+        max-width: 1100px;
+        /* Adjusted width for 3 columns */
+        margin: 0 auto;
+        /* Center the grid on the page */
+    }
+
+    /* Responsive: Switch to 2 or 1 column on smaller screens */
+    @media (max-width: 900px) {
+        .books-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .books-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Premium Card Design - COMPACT SIZE */
+    .book-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        min-height: 400px;
+        /* Increased height for better proportions */
+    }
+
+    .book-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Image Area - LARGER */
+    .book-image-container {
+        width: 100%;
+        height: 260px;
+        /* Taller images */
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        background: transparent;
+    }
+
+    .book-image-container img {
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+        width: auto;
+        object-fit: contain;
+        filter: none;
+        border-radius: 5px;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 5px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-badge.available {
+        background-color: #27ae60;
+        /* Green */
+    }
+
+    .status-badge.unavailable {
+        background-color: #c0392b;
+        /* Red */
+    }
+
+    .no-image-placeholder {
+        width: 120px;
+        height: 180px;
+        background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3em;
+        color: #fff;
+        border-radius: 4px;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Typography */
+    .book-title {
+        color: #2c3e50;
+        font-size: 1.25em;
+        /* Preserving user's font size */
+        font-weight: 700;
+        margin-bottom: -5px;
+        /* Negative margin to squeeze space */
+        line-height: 1.2;
+        /* Tighter line height */
+        /* Line clamp to prevent long titles breaking layout */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 2.4em;
+        /* Fixed height for 2 lines */
+    }
+
+    .book-info-line {
+
+        color: #ad4f4f;
+        margin-bottom: 0px;
+        /* Tighter lines */
+        font-weight: bold;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .book-info-line span {
+        font-weight: 400;
+        color: #290505d4;
+    }
+
+    /* Actions Spacer */
+    .spacer {
+        flex-grow: 1;
+        min-height: 10px;
+    }
+
+    /* Buttons Container */
+    .book-actions {
+        display: flex;
+        gap: 8px;
+        /* Closer buttons */
+        margin-top: 10px;
+        /* Reduced top margin */
+        width: 100%;
+        justify-content: center;
+        padding: 0 5px;
+    }
+
+    /* Pill Buttons - COMPACT */
+    .action-btn-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 10px 16px;
+        /* Smaller padding */
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.8em;
+        /* Smaller font */
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        flex: 1;
+        max-width: 100px;
+        /* Smaller max width */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Edit Button: Primary Platform Brown */
+    /* Uses gradient-btn from style.css logic if vars available, else fallback to hex */
+    .btn-edit {
+        background: linear-gradient(to right, #8D6E63, #5D4037);
+        /* var(--gradient-btn) */
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: linear-gradient(to right, #C4A484, #8D6E63);
+        /* var(--gradient-btn-hover) */
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(93, 64, 55, 0.3);
+    }
+
+    /* Delete Button: Same Brown Color as requested */
+    .btn-delete {
+        background: linear-gradient(to right, #8D6E63, #5D4037);
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(to right, #C4A484, #8D6E63);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(93, 64, 55, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Livres</div>
+
+<!-- Controls -->
+<div class="book-controls">
+    <div class="search-box">
+        <i class='bx bx-search icon'></i>
+        <input type="text" id="searchInput" placeholder="Rechercher un livre...">
+    </div>
+    <button class="add-btn" id="addBookBtn">
+        <i class='bx bx-plus'></i>
+        Nouveau Livre
+    </button>
+</div>
+
+<!-- Books Grid -->
+<div class="books-grid" id="booksGrid">
+    <!-- Data will be populated by JS -->
+</div>
+
+<!-- Add/Edit Book Modal -->
+<div id="bookModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modalTitle">Ajouter un Livre</h2>
+        <form id="addBookForm">
+            <!-- Full Width Items -->
+            <div class="form-group full-width">
+                <label>Image du livre</label>
+                <input type="file" id="image" accept="image/*">
+            </div>
+            <div class="form-group full-width">
+                <label>Titre</label>
+                <input type="text" id="title" required>
+            </div>
+
+            <!-- 2 Column Items -->
+            <div class="form-group">
+                <label>Auteur</label>
+                <input type="text" id="author" required>
+            </div>
+            <div class="form-group">
+                <label>Catégorie</label>
+                <input type="text" id="category" required>
+            </div>
+            <div class="form-group">
+                <label>ISBN</label>
+                <input type="text" id="isbn">
+            </div>
+            <div class="form-group">
+                <label>Année</label> <!-- Shortened label -->
+                <input type="number" id="publication_year" min="1900" max="2100">
+            </div>
+            <div class="form-group">
+                <label>Prix (DH)</label>
+                <input type="number" id="price" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+                <label>Copies</label> <!-- Shortened label -->
+                <input type="number" id="total_copies" min="1" value="1" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Enregistrer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/livres.js') }}"></script>
+{% endblock %}

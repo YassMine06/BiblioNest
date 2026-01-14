@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Administrateurs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/livres.css') }}">
+<style>
+    /* Ensure modal is hidden by default and styled like other pages */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text">Gestion des Administrateurs</div>
+
+<div class="book-controls" style="justify-content: flex-end;">
+    <button class="add-btn" id="addAdminBtn"><i class='bx bx-plus'></i> Nouvel Admin</button>
+</div>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div style="color: red; padding: 10px;">
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="recent-activities">
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Nom d'utilisateur</th>
+                <th>Rôle</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ admin.name }}</td>
+                <td>{{ admin.username }}</td>
+                <td><span class="status badge-success">{{ admin.role }}</span></td>
+                <td>
+                    <a href="{{ url_for('delete_admin', admin_id=admin.id) }}" class="action-btn delete"
+                        onclick="return confirm('Supprimer cet admin ?')">
+                        <i class='bx bx-trash'></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Ajouter un Admin</h2>
+        <form id="addAdminForm" method="POST" action="{{ url_for('list_admins') }}">
+            <div class="form-group"><label>Nom</label><input type="text" name="name" required></div>
+            <div class="form-group"><label>Nom d'utilisateur</label><input type="text" name="username" required></div>
+            <div class="form-group"><label>Mot de passe</label><input type="password" name="password" required></div>
+            <div class="form-group"><label>Rôle</label>
+                <select name="role">
+                    <option value="Super Admin">Super Admin</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Modérateur">Modérateur</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-btn" style="width: 100%;">Ajouter</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('adminModal');
+        document.getElementById('addAdminBtn').onclick = () => modal.style.display = "block";
+        document.querySelector('.close-modal').onclick = () => modal.style.display = "none";
+        window.onclick = (e) => {
+            if (e.target == modal) modal.style.display = "none";
+        };
+    });
+</script>
+{% endblock %}
