@@ -55,6 +55,12 @@ def check_login():
     if 'user_id' not in session and request.endpoint not in public_routes:
         return redirect(url_for('login'))
 
+@app.context_processor
+def inject_branding():
+    setting = Setting.query.get(1)
+    lib_name = setting.library_name if setting else 'BiblioNest'
+    return dict(lib_name=lib_name, current_year=date.today().year)
+
 def to_date(d):
     """Helper to convert date, datetime, or ISO string to date object."""
     if d is None:
@@ -110,9 +116,6 @@ def dashboard():
     
     recent_activities = Loan.query.order_by(Loan.id.desc()).limit(5).all()
     
-    setting = Setting.query.get(1)
-    lib_name = setting.library_name if setting else 'BiblioNest'
-
     # --- Data for Charts ---
     
     # 1. Books per Category
@@ -155,7 +158,6 @@ def dashboard():
                            total_overdue=total_overdue, 
                            active_loans=active_loans,
                            recent_activities=recent_activities,
-                           lib_name=lib_name,
                            date=date,
                            # Chart Data
                            cat_names=cat_names,
